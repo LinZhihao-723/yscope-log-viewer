@@ -129,7 +129,7 @@ class ActionHandler {
         if (!isNumeric(timestamp)) {
             throw (new Error("Invalid timestamp provided."));
         }
-        this._logFile.state.logEventIdx = this._logFile.getLogEventIdxWithTimestamp(timestamp);
+        this._logFile.state.logEventIdx = this._logFile.getLogEventIdxFromTimestamp(timestamp);
         const currentPage = this._logFile.state.page;
         this._logFile.computePageNumFromLogEventIdx();
         // If the new event is on a new page, decode the page
