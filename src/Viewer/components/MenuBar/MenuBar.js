@@ -51,6 +51,7 @@ export function MenuBar ({
     const {theme, switchTheme} = useContext(ThemeContext);
 
     const [eventsPerPage, setEventsPerPage] = useState(logFileState.pages);
+    const [timestamp, setTimestamp] = useState(0);
     const [showSettings, setShowSettings] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
 
@@ -110,6 +111,11 @@ export function MenuBar ({
         handleCloseSettings();
         changeStateCallback(STATE_CHANGE_TYPE.pageSize, {pageSize: eventsPerPage});
         localStorage.setItem("pageSize", String(eventsPerPage));
+        if (timestamp != 0) {
+            console.debug(`Timestamp: ${timestamp}`);
+            changeStateCallback(STATE_CHANGE_TYPE.timestamp, {timestamp: timestamp});
+            setTimestamp(0);
+        }
     };
 
     const closeModal = () => {
@@ -219,6 +225,13 @@ export function MenuBar ({
                         <Form.Control type="number"
                             value={eventsPerPage}
                             onChange={(e) => setEventsPerPage(Number(e.target.value))}
+                            className="input-sm num-event-input" />
+                    </Form>
+                    <label className="mb-2">Timestamp</label>
+                    <Form onSubmit={saveModalChanges}>
+                        <Form.Control type="number"
+                            value={timestamp}
+                            onChange={(e) => setTimestamp(Number(e.target.value))}
                             className="input-sm num-event-input" />
                     </Form>
                 </Modal.Body>

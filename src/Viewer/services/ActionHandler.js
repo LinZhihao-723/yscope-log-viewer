@@ -122,6 +122,25 @@ class ActionHandler {
     };
 
     /**
+     * Goes to the log event with the given timestamp.
+     * @param {number} timestamp
+     */
+    changeEventWithTimestamp (timestamp) {
+        if (!isNumeric(timestamp)) {
+            throw (new Error("Invalid timestamp provided."));
+        }
+        this._logFile.state.logEventIdx = this._logFile.getLogEventIdxWithTimestamp(timestamp);
+        const currentPage = this._logFile.state.page;
+        this._logFile.computePageNumFromLogEventIdx();
+        // If the new event is on a new page, decode the page
+        if (currentPage !== this._logFile.state.page) {
+            this._logFile.decodePage();
+        }
+        this._logFile.computeLineNumFromLogEventIdx();
+        this._updateStateCallback(CLP_WORKER_PROTOCOL.UPDATE_STATE, this._logFile.state);
+    }
+
+    /**
      * Get the log event given a line number.
      * @param {number} lineNumber
      * @param {number} columnNumber

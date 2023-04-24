@@ -214,6 +214,26 @@ class FileManager {
     };
 
     /**
+     * Find the first log event using the given timestamp.
+     * @param {number} timestamp
+     * @return {number} log event idx
+     */
+    getLogEventIdxWithTimestamp (timestamp) {
+        const numberOfEvents = this._logEventOffsets.length;
+        if (this._timestampSorted) {
+            const targetIdx = binarySearchWithTimestamp(timestamp, this._logEventOffsets);
+            return null === targetIdx ? numberOfEvents : targetIdx + 1;
+        } else {
+            for (let idx = 0; idx < numberOfEvents; idx++) {
+                if (this._logEventOffsets[idx].timestamp >= timestamp) {
+                    return idx + 1;
+                }
+            }
+            return numberOfEvents;
+        }
+    }
+
+    /**
      * Gets the page of the current log event
      */
     computePageNumFromLogEventIdx () {
