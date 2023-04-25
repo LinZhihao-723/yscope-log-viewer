@@ -182,6 +182,24 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
                     desiredLogEventIdx: args.logEventIdx,
                 });
                 break;
+            case STATE_CHANGE_TYPE.file:
+                if (clpWorker.current) {
+                    clpWorker.current.terminate();
+                }
+                setStatusMessageLogs([...msgLogger.current.reset()]);
+                setLoadingLogs(false);
+                setLoadingFile(true);
+
+                // Create new worker and pass args to worker to load file
+                clpWorker.current = new Worker(new URL("./services/clpWorker.js", import.meta.url));
+                clpWorker.current.onmessage = handleWorkerMessage;
+                clpWorker.current.postMessage({
+                    code: CLP_WORKER_PROTOCOL.CHANGE_FILE,
+                    prettify: logFileState.prettify,
+                    pageSize: logFileState.pageSize,
+                    action: args.action,
+                });
+                break;
             default:
                 break;
         }

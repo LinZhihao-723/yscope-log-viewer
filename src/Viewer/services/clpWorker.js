@@ -1,5 +1,6 @@
 import ActionHandler from "./ActionHandler";
 import CLP_WORKER_PROTOCOL from "./CLP_WORKER_PROTOCOL";
+import MODIFY_FILE_ACTION from "./MODIFY_FILE_ACTION";
 
 /**
  * Send error to component which created worker.
@@ -23,6 +24,25 @@ onmessage = function (e) {
                 const logEventIdx = e.data.logEventIdx;
                 const pageSize = e.data.pageSize;
                 const initialTimestamp = e.data.initialTimestamp;
+                handler = new ActionHandler(fileInfo, prettify, logEventIdx, initialTimestamp,
+                    pageSize);
+            } catch (e) {
+                sendError(e);
+            }
+            break;
+
+        case CLP_WORKER_PROTOCOL.CHANGE_FILE:
+            try {
+                const fileInfo = "unsorted.clp.zst";
+                const prettify = e.data.prettify;
+                const pageSize = e.data.pageSize;
+                const logEventIdx = e.data.action === MODIFY_FILE_ACTION.next ? 1 : null;
+                if (e.data.action === MODIFY_FILE_ACTION.next) {
+                    console.debug("Next page");
+                } else {
+                    console.debug("Prev page");
+                }
+                const initialTimestamp = null;
                 handler = new ActionHandler(fileInfo, prettify, logEventIdx, initialTimestamp,
                     pageSize);
             } catch (e) {

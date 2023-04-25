@@ -2,11 +2,14 @@ import React, {useContext, useRef, useState} from "react";
 
 import PropTypes from "prop-types";
 import {Button, Form, Modal, ProgressBar, Table} from "react-bootstrap";
-import {ChevronDoubleLeft, ChevronDoubleRight, ChevronLeft, ChevronRight,
-    FileText, Folder, Gear, Keyboard, Moon, Sun} from "react-bootstrap-icons";
+import {
+    ArrowBarLeft, ArrowBarRight, ChevronDoubleLeft, ChevronDoubleRight, ChevronLeft, ChevronRight,
+    FileText, Folder, Gear, Keyboard, Moon, Sun
+} from "react-bootstrap-icons";
 
 import {THEME_STATES} from "../../../ThemeContext/THEME_STATES";
 import {ThemeContext} from "../../../ThemeContext/ThemeContext";
+import MODIFY_FILE_ACTION from "../../services/MODIFY_FILE_ACTION";
 import MODIFY_PAGE_ACTION from "../../services/MODIFY_PAGE_ACTION";
 import STATE_CHANGE_TYPE from "../../services/STATE_CHANGE_TYPE";
 import {EditableInput} from "./EditableInput/EditableInput";
@@ -89,6 +92,14 @@ export function MenuBar ({
         });
     };
 
+    const goToNextFile = () => {
+        changeStateCallback(STATE_CHANGE_TYPE.file, {action: MODIFY_FILE_ACTION.next});
+    };
+
+    const goToPrevFile = () => {
+        changeStateCallback(STATE_CHANGE_TYPE.file, {action: MODIFY_FILE_ACTION.prev});
+    };
+
     // File functions
     const openFile = () => {
         inputFile.current.click();
@@ -138,6 +149,9 @@ export function MenuBar ({
     const getPageNav = () => {
         return (
             <>
+                <div className="menu-item menu-item-btn" onClick={goToPrevFile}>
+                    <ArrowBarLeft title="Previous File"/>
+                </div>
                 <div className="menu-item menu-item-btn" onClick={goToFirstPage}>
                     <ChevronDoubleLeft title="First Page"/>
                 </div>
@@ -155,6 +169,9 @@ export function MenuBar ({
                 </div>
                 <div className="menu-item menu-item-btn" onClick={goToLastPage}>
                     <ChevronDoubleRight title="Last Page"/>
+                </div>
+                <div className="menu-item menu-item-btn" onClick={goToNextFile}>
+                    <ArrowBarRight title="Next File"/>
                 </div>
             </>
         );
