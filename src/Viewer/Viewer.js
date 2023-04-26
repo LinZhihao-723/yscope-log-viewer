@@ -12,6 +12,8 @@ import {StatusBar} from "./components/StatusBar/StatusBar";
 import CLP_WORKER_PROTOCOL from "./services/CLP_WORKER_PROTOCOL";
 import FourByteClpIrStreamReader from "./services/decoder/FourByteClpIrStreamReader";
 import MessageLogger from "./services/MessageLogger";
+import MODIFY_FILE_ACTION from "./services/MODIFY_FILE_ACTION";
+import SCANNER_PROTOCOL from "./services/SCANNER_PROTOCOL";
 import STATE_CHANGE_TYPE from "./services/STATE_CHANGE_TYPE";
 import {isNumeric, modifyFileMetadata, modifyPage} from "./services/utils";
 import VerbatimURLParams from "./services/VerbatimURLParams";
@@ -41,11 +43,14 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
 
     // Ref hook used to reference worker used for loading and decoding
     const clpWorker = useRef(null);
+    const scannerWorker = useRef(null);
 
     // Logger used to track of all loading messages and state transitions
     const msgLogger = useRef(new MessageLogger());
 
     // Loading States
+    const [prevFile, setPrevFile] = useState(null);
+    const [nextFile, setNextFile] = useState(null);
     const [loadingFile, setLoadingFile] = useState(true);
     const [loadingLogs, setLoadingLogs] = useState(true);
     const [statusMessage, setStatusMessage] = useState("");
@@ -85,9 +90,14 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
         if (clpWorker.current) {
             clpWorker.current.terminate();
         }
+        if (scannerWorker.current) {
+            scannerWorker.current.terminate();
+        }
         setStatusMessageLogs([...msgLogger.current.reset()]);
         setLoadingLogs(false);
         setLoadingFile(true);
+        setPrevFile(null);
+        setNextFile(null);
 
         // Create new worker and pass args to worker to load file
         clpWorker.current = new Worker(new URL("./services/clpWorker.js", import.meta.url));
@@ -102,6 +112,13 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
             logEventIdx: logEvent,
             initialTimestamp: initialTimestamp,
             pageSize: logFileState.pageSize,
+        });
+
+        scannerWorker.current = new Worker(new URL("./services/scannerWorker.js", import.meta.url));
+        scannerWorker.current.onmessage = handlerScannerMessage;
+        scannerWorker.current.postMessage({
+            code: SCANNER_PROTOCOL.SCAN,
+            fileInfo: fileInfo,
         });
     };
 
@@ -183,21 +200,48 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
                 });
                 break;
             case STATE_CHANGE_TYPE.file:
+                let fileInfo = null;
+                let logEventIdx;
+                if (args.action === MODIFY_FILE_ACTION.prev) {
+                    console.debug("Prev file clicking.");
+                    logEventIdx = null;
+                    fileInfo = prevFile;
+                } else {
+                    console.debug("Next file clicking.");
+                    logEventIdx = 1;
+                    fileInfo = nextFile;
+                }
+                if (fileInfo === null) {
+                    console.debug("File is null.");
+                    break;
+                }
+
                 if (clpWorker.current) {
                     clpWorker.current.terminate();
+                }
+                if (scannerWorker.current) {
+                    scannerWorker.current.terminate();
                 }
                 setStatusMessageLogs([...msgLogger.current.reset()]);
                 setLoadingLogs(false);
                 setLoadingFile(true);
 
-                // Create new worker and pass args to worker to load file
                 clpWorker.current = new Worker(new URL("./services/clpWorker.js", import.meta.url));
                 clpWorker.current.onmessage = handleWorkerMessage;
                 clpWorker.current.postMessage({
                     code: CLP_WORKER_PROTOCOL.CHANGE_FILE,
+                    fileInfo: fileInfo,
                     prettify: logFileState.prettify,
                     pageSize: logFileState.pageSize,
-                    action: args.action,
+                    logEventIdx: logEventIdx,
+                });
+
+                scannerWorker.current = new Worker(new URL("./services/scannerWorker.js",
+                    import.meta.url));
+                scannerWorker.current.onmessage = handlerScannerMessage;
+                scannerWorker.current.postMessage({
+                    code: SCANNER_PROTOCOL.SCAN,
+                    fileInfo: fileInfo,
                 });
                 break;
             default:
@@ -244,6 +288,24 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
                 break;
         }
     }, [logFileState, logData]);
+
+    const handlerScannerMessage = useCallback( (event) => {
+        switch (event.data.code) {
+            case SCANNER_PROTOCOL.LOAD_PREV:
+                setPrevFile(event.data.fileInfo);
+                break;
+            case SCANNER_PROTOCOL.LOAD_NEXT:
+                setNextFile(event.data.fileInfo);
+                break;
+            case SCANNER_PROTOCOL.ERROR:
+                msgLogger.current.add(event.data.error);
+                setNextFile(null);
+                setPrevFile(null);
+                break;
+            default:
+                break;
+        }
+    }, [prevFile, nextFile]);
 
     useEffect(() => {
         modifyFileMetadata(fileMetadata, logFileState.logEventIdx);

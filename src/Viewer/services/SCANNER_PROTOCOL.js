@@ -1,0 +1,9 @@
+let SCANNER_PROTOCOL = {
+    SCAN: 0,
+    LOAD_PREV: 1,
+    LOAD_NEXT: 2,
+    ERROR: 3,
+};
+SCANNER_PROTOCOL = Object.freeze(SCANNER_PROTOCOL);
+
+export default SCANNER_PROTOCOL;

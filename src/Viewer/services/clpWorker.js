@@ -33,15 +33,10 @@ onmessage = function (e) {
 
         case CLP_WORKER_PROTOCOL.CHANGE_FILE:
             try {
-                const fileInfo = "unsorted.clp.zst";
+                const fileInfo = e.data.fileInfo;
                 const prettify = e.data.prettify;
                 const pageSize = e.data.pageSize;
-                const logEventIdx = e.data.action === MODIFY_FILE_ACTION.next ? 1 : null;
-                if (e.data.action === MODIFY_FILE_ACTION.next) {
-                    console.debug("Next page");
-                } else {
-                    console.debug("Prev page");
-                }
+                const logEventIdx = e.data.logEventIdx;
                 const initialTimestamp = null;
                 handler = new ActionHandler(fileInfo, prettify, logEventIdx, initialTimestamp,
                     pageSize);
