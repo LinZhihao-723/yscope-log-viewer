@@ -31,20 +31,6 @@ onmessage = function (e) {
             }
             break;
 
-        case CLP_WORKER_PROTOCOL.CHANGE_FILE:
-            try {
-                const fileInfo = e.data.fileInfo;
-                const prettify = e.data.prettify;
-                const pageSize = e.data.pageSize;
-                const logEventIdx = e.data.logEventIdx;
-                const initialTimestamp = null;
-                handler = new ActionHandler(fileInfo, prettify, logEventIdx, initialTimestamp,
-                    pageSize);
-            } catch (e) {
-                sendError(e);
-            }
-            break;
-
         case CLP_WORKER_PROTOCOL.UPDATE_VERBOSITY:
             try {
                 handler.changeVerbosity(e.data.verbosity);

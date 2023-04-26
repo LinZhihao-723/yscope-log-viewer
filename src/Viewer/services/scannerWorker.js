@@ -52,7 +52,12 @@ function queryPrevFile (prefix, timestamp, currKey, hostname) {
         console.debug(`Query: ${prevFileQueryUrl}`);
         const xhr = new XMLHttpRequest();
         xhr.open("GET", prevFileQueryUrl, false);
-        xhr.send();
+        try {
+            xhr.send();
+        } catch (e) {
+            sendError(e);
+            break;
+        }
         if (4 !== xhr.readyState && 200 !== xhr.status) {
             ++numHours;
             continue;

@@ -18,6 +18,8 @@ import "./MenuBar.scss";
 
 MenuBar.propTypes = {
     logFileState: PropTypes.object,
+    prevFile: PropTypes.string,
+    nextFile: PropTypes.string,
     fileMetaData: PropTypes.object,
     loadingLogs: PropTypes.bool,
     changeStateCallback: PropTypes.func,
@@ -49,7 +51,7 @@ MenuBar.propTypes = {
  * @return {JSX.Element}
  */
 export function MenuBar ({
-    logFileState, fileMetaData, loadingLogs, changeStateCallback, loadFileCallback,
+    logFileState, prevFile, nextFile, fileMetaData, loadingLogs, changeStateCallback, loadFileCallback,
 }) {
     const {theme, switchTheme} = useContext(ThemeContext);
 
@@ -150,7 +152,10 @@ export function MenuBar ({
         return (
             <>
                 <div className="menu-item menu-item-btn" onClick={goToPrevFile}>
-                    <ArrowBarLeft title="Previous File"/>
+                    {(null === prevFile)
+                        ? <ArrowBarLeft style={{color:"grey", pointer:"none"}}/>
+                        : <ArrowBarLeft title={prevFile}/>
+                    }
                 </div>
                 <div className="menu-item menu-item-btn" onClick={goToFirstPage}>
                     <ChevronDoubleLeft title="First Page"/>
@@ -171,7 +176,10 @@ export function MenuBar ({
                     <ChevronDoubleRight title="Last Page"/>
                 </div>
                 <div className="menu-item menu-item-btn" onClick={goToNextFile}>
-                    <ArrowBarRight title="Next File"/>
+                    {(null === nextFile)
+                        ? <ArrowBarRight style={{color:"grey", pointer:"none"}}/>
+                        : <ArrowBarRight title={nextFile}/>
+                    }
                 </div>
             </>
         );

@@ -79,6 +79,9 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
             if (clpWorker.current) {
                 clpWorker.current.terminate();
             }
+            if (scannerWorker.current) {
+                scannerWorker.current.terminate();
+            }
         };
     }, []);
 
@@ -200,18 +203,18 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
                 });
                 break;
             case STATE_CHANGE_TYPE.file:
-                let fileInfo = null;
+                let newFileInfo = null;
                 let logEventIdx;
                 if (args.action === MODIFY_FILE_ACTION.prev) {
                     console.debug("Prev file clicking.");
                     logEventIdx = null;
-                    fileInfo = prevFile;
+                    newFileInfo = prevFile;
                 } else {
                     console.debug("Next file clicking.");
                     logEventIdx = 1;
-                    fileInfo = nextFile;
+                    newFileInfo = nextFile;
                 }
-                if (fileInfo === null) {
+                if (newFileInfo === null) {
                     console.debug("File is null.");
                     break;
                 }
@@ -229,19 +232,22 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
                 clpWorker.current = new Worker(new URL("./services/clpWorker.js", import.meta.url));
                 clpWorker.current.onmessage = handleWorkerMessage;
                 clpWorker.current.postMessage({
-                    code: CLP_WORKER_PROTOCOL.CHANGE_FILE,
-                    fileInfo: fileInfo,
+                    code: CLP_WORKER_PROTOCOL.LOAD_FILE,
+                    fileInfo: newFileInfo,
                     prettify: logFileState.prettify,
                     pageSize: logFileState.pageSize,
                     logEventIdx: logEventIdx,
+                    initialTimestamp: null,
                 });
 
+                setNextFile(null);
+                setPrevFile(null);
                 scannerWorker.current = new Worker(new URL("./services/scannerWorker.js",
                     import.meta.url));
                 scannerWorker.current.onmessage = handlerScannerMessage;
                 scannerWorker.current.postMessage({
                     code: SCANNER_PROTOCOL.SCAN,
-                    fileInfo: fileInfo,
+                    fileInfo: newFileInfo,
                 });
                 break;
             default:
@@ -344,6 +350,8 @@ export function Viewer ({fileInfo, prettifyLog, logEventNumber, timestamp}) {
                 <div className="d-flex h-100 flex-column">
                     <MenuBar
                         loadingLogs={loadingLogs}
+                        prevFile={prevFile}
+                        nextFile={nextFile}
                         fileMetaData={fileMetadata}
                         logFileState={logFileState}
                         changeStateCallback={changeState}
