@@ -21,7 +21,10 @@ import {ThemeContext} from "../../../ThemeContext/ThemeContext";
 import MODIFY_PAGE_ACTION from "../../services/MODIFY_PAGE_ACTION";
 import STATE_CHANGE_TYPE from "../../services/STATE_CHANGE_TYPE";
 import {EditableInput} from "./EditableInput/EditableInput";
+import moment from 'moment-timezone';
 
+import DateTime from "react-datetime";
+import "react-datetime/css/react-datetime.css";
 import "./MenuBar.scss";
 
 MenuBar.propTypes = {
@@ -62,17 +65,10 @@ export function MenuBar ({
     const {theme, switchTheme} = useContext(ThemeContext);
 
     const [eventsPerPage, setEventsPerPage] = useState(logFileState.pages);
-    const [timestamp, setTimestamp] = useState(0);
     const [showSettings, setShowSettings] = useState(false);
     const [showCalendar, setShowCalendar] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
-
-    const [calendarYear, setCalendarYear] = useState(0);
-    const [calendarMonth, setCalendarMonth] = useState(0);
-    const [calendarDate, setCalendarDate] = useState(0);
-    const [calendarHour, setCalendarHour] = useState(0);
-    const [calendarMinute, setCalendarMinute] = useState(0);
-    const [calendarMS, setCalendarMS] = useState(0);
+    const [calendarDateTime, setCalendarDateTime] = useState(new moment(Math.floor(Date.now() / 1000) * 1000).utc());
 
     const handleCloseSettings = () => setShowSettings(false);
     const handleShowSettings = () => setShowSettings(true);
@@ -132,15 +128,6 @@ export function MenuBar ({
         handleCloseSettings();
         changeStateCallback(STATE_CHANGE_TYPE.pageSize, {pageSize: eventsPerPage});
         localStorage.setItem("pageSize", String(eventsPerPage));
-        if (0 !== timestamp) {
-            console.debug(`Timestamp: ${timestamp}`);
-            changeStateCallback(STATE_CHANGE_TYPE.timestamp, {timestamp: timestamp});
-            setTimestamp(0);
-        }
-    };
-
-    const saveCalendarChanges = (e) => {
-        return;
     };
 
     const closeModal = () => {
@@ -160,17 +147,20 @@ export function MenuBar ({
         handleCloseCalendar();
     };
 
-    const getCalendarElement = (calendarState, stateSetter) => {
-        return (
-            <>
-                <Form onSubmit={saveCalendarChanges}>
-                    <Form.Control type="number"
-                        value={calendarState}
-                        onChange={(e) => stateSetter(Number(e.target.value))}
-                        className="input-sm num-event-input" />
-                </Form>
-            </>
-        );
+    const handleCalendarChange = (newDate) => {
+        if (newDate instanceof moment) {
+            setCalendarDateTime(newDate.utc());
+        } else {
+            console.warn(`Invalid input date: ${newDate}`);
+        }
+    };
+
+    const submitCalendarChanges = (e) => {
+        e.preventDefault();
+        handleCloseCalendar();
+        const timestamp = calendarDateTime.valueOf();
+        console.debug(`Timestamp: ${timestamp}`);
+        changeStateCallback(STATE_CHANGE_TYPE.timestamp, {timestamp: timestamp});
     };
 
     const getThemeIcon = () => {
@@ -212,11 +202,11 @@ export function MenuBar ({
         );
     };
 
-    const getTimestampSetting = () => {
+    const getCalendar = () => {
         return (
             <>
                 <div className="menu-item menu-item-btn" onClick={openCalendar}>
-                    <CalendarDate title="Last Page"/>
+                    <CalendarDate title="Calendar"/>
                 </div>
             </>
         );
@@ -245,7 +235,7 @@ export function MenuBar ({
                     <div className="menu-right">
                         {getPageNav()}
                         <div className="menu-divider"></div>
-                        {getTimestampSetting()}
+                        {getCalendar()}
                         <div className="menu-divider"></div>
                         <div className="menu-item menu-item-btn" onClick={openModal}>
                             <Gear/>
@@ -285,13 +275,6 @@ export function MenuBar ({
                             onChange={(e) => setEventsPerPage(Number(e.target.value))}
                             className="input-sm num-event-input" />
                     </Form>
-                    <label className="mb-2">Timestamp</label>
-                    <Form onSubmit={saveModalChanges}>
-                        <Form.Control type="number"
-                            value={timestamp}
-                            onChange={(e) => setTimestamp(Number(e.target.value))}
-                            className="input-sm num-event-input" />
-                    </Form>
                 </Modal.Body>
                 <Modal.Footer className="modal-background border-0" >
                     <Button className="btn-sm" variant="success" onClick={saveModalChanges}>
@@ -310,42 +293,12 @@ export function MenuBar ({
                     </div>
                 </Modal.Header>
                 <Modal.Body className="modal-background p-3 pt-1" >
-                    <Table borderless style={{fontSize: "13px"}} >
-                        <thead>
-                            <tr>
-                                <th>Year</th>
-                                <th>Month</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{getCalendarElement(calendarYear, setCalendarYear)}</td>
-                                <td>{getCalendarElement(calendarMonth, setCalendarMonth)}</td>
-                                <td>{getCalendarElement(calendarDate, setCalendarDate)}</td>
-                            </tr>
-                        </tbody>
-                    </Table>
-                    <Table borderless style={{fontSize: "13px"}} >
-                        <thead>
-                            <tr>
-                                <th>Hour</th>
-                                <th>Minute</th>
-                                <th>MS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{getCalendarElement(calendarHour, setCalendarHour)}</td>
-                                <td>{getCalendarElement(calendarMinute, setCalendarMinute)}</td>
-                                <td>{getCalendarElement(calendarMS, setCalendarMS)}</td>
-                            </tr>
-                        </tbody>
-                    </Table>
+                    <DateTime onChange={handleCalendarChange} timeFormat="HH:mm:ss:SSS"
+                        value={calendarDateTime}/>
                 </Modal.Body>
                 <Modal.Footer className="modal-background border-0" >
-                    <Button className="btn-sm" variant="success" onClick={saveCalendarChanges}>
-                        Jump
+                    <Button className="btn-sm" variant="success" onClick={submitCalendarChanges}>
+                        Submit
                     </Button>
                     <Button className="btn-sm" variant="secondary" onClick={closeCalendar}>
                         Close
