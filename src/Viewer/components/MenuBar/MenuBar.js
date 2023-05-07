@@ -2,8 +2,19 @@ import React, {useContext, useRef, useState} from "react";
 
 import PropTypes from "prop-types";
 import {Button, Form, Modal, ProgressBar, Table} from "react-bootstrap";
-import {ChevronDoubleLeft, ChevronDoubleRight, ChevronLeft, ChevronRight,
-    FileText, Folder, Gear, Keyboard, Moon, Sun} from "react-bootstrap-icons";
+import {
+    CalendarDate,
+    ChevronDoubleLeft,
+    ChevronDoubleRight,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    Folder,
+    Gear,
+    Keyboard,
+    Moon,
+    Sun
+} from "react-bootstrap-icons";
 
 import {THEME_STATES} from "../../../ThemeContext/THEME_STATES";
 import {ThemeContext} from "../../../ThemeContext/ThemeContext";
@@ -53,10 +64,20 @@ export function MenuBar ({
     const [eventsPerPage, setEventsPerPage] = useState(logFileState.pages);
     const [timestamp, setTimestamp] = useState(0);
     const [showSettings, setShowSettings] = useState(false);
+    const [showCalendar, setShowCalendar] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
+
+    const [calendarYear, setCalendarYear] = useState(0);
+    const [calendarMonth, setCalendarMonth] = useState(0);
+    const [calendarDate, setCalendarDate] = useState(0);
+    const [calendarHour, setCalendarHour] = useState(0);
+    const [calendarMinute, setCalendarMinute] = useState(0);
+    const [calendarMS, setCalendarMS] = useState(0);
 
     const handleCloseSettings = () => setShowSettings(false);
     const handleShowSettings = () => setShowSettings(true);
+    const handleCloseCalendar = () => setShowCalendar(false);
+    const handleShowCalendar = () => setShowCalendar(true);
 
     const handleCloseHelp = () => setShowHelp(false);
     const handleShowHelp = () => setShowHelp(true);
@@ -100,7 +121,7 @@ export function MenuBar ({
     };
 
     // Modal Functions
-    const getModalClass = () => {
+    const getThemeClass = () => {
         return (THEME_STATES.LIGHT === theme)?"modal-light":"modal-dark";
     };
 
@@ -111,11 +132,15 @@ export function MenuBar ({
         handleCloseSettings();
         changeStateCallback(STATE_CHANGE_TYPE.pageSize, {pageSize: eventsPerPage});
         localStorage.setItem("pageSize", String(eventsPerPage));
-        if (timestamp != 0) {
+        if (0 !== timestamp) {
             console.debug(`Timestamp: ${timestamp}`);
             changeStateCallback(STATE_CHANGE_TYPE.timestamp, {timestamp: timestamp});
             setTimestamp(0);
         }
+    };
+
+    const saveCalendarChanges = (e) => {
+        return;
     };
 
     const closeModal = () => {
@@ -125,6 +150,27 @@ export function MenuBar ({
     const openModal = () => {
         handleShowSettings();
         setEventsPerPage(logFileState.pageSize);
+    };
+
+    const openCalendar = () => {
+        handleShowCalendar();
+    };
+
+    const closeCalendar = () => {
+        handleCloseCalendar();
+    };
+
+    const getCalendarElement = (calendarState, stateSetter) => {
+        return (
+            <>
+                <Form onSubmit={saveCalendarChanges}>
+                    <Form.Control type="number"
+                        value={calendarState}
+                        onChange={(e) => stateSetter(Number(e.target.value))}
+                        className="input-sm num-event-input" />
+                </Form>
+            </>
+        );
     };
 
     const getThemeIcon = () => {
@@ -166,6 +212,16 @@ export function MenuBar ({
         );
     };
 
+    const getTimestampSetting = () => {
+        return (
+            <>
+                <div className="menu-item menu-item-btn" onClick={openCalendar}>
+                    <CalendarDate title="Last Page"/>
+                </div>
+            </>
+        );
+    };
+
     const loadingBarHeight = "3px";
     const getLoadingBar = () => {
         return (loadingLogs)
@@ -189,6 +245,8 @@ export function MenuBar ({
                     <div className="menu-right">
                         {getPageNav()}
                         <div className="menu-divider"></div>
+                        {getTimestampSetting()}
+                        <div className="menu-divider"></div>
                         <div className="menu-item menu-item-btn" onClick={openModal}>
                             <Gear/>
                         </div>
@@ -210,7 +268,7 @@ export function MenuBar ({
             </div>
 
             <Modal show={showSettings} className="border-0" onHide={handleCloseSettings}
-                contentClassName={getModalClass()}>
+                contentClassName={getThemeClass()}>
                 <Modal.Header className="modal-background border-0" >
                     <div className="float-left">
                         App Settings
@@ -245,9 +303,58 @@ export function MenuBar ({
                 </Modal.Footer>
             </Modal>
 
+            <Modal show={showCalendar} className="border-0" onHide={handleCloseCalendar}>
+                <Modal.Header className="modal-background border-0" >
+                    <div className="float-left">
+                        Timestamp Selection
+                    </div>
+                </Modal.Header>
+                <Modal.Body className="modal-background p-3 pt-1" >
+                    <Table borderless style={{fontSize: "13px"}} >
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Month</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{getCalendarElement(calendarYear, setCalendarYear)}</td>
+                                <td>{getCalendarElement(calendarMonth, setCalendarMonth)}</td>
+                                <td>{getCalendarElement(calendarDate, setCalendarDate)}</td>
+                            </tr>
+                        </tbody>
+                    </Table>
+                    <Table borderless style={{fontSize: "13px"}} >
+                        <thead>
+                            <tr>
+                                <th>Hour</th>
+                                <th>Minute</th>
+                                <th>MS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{getCalendarElement(calendarHour, setCalendarHour)}</td>
+                                <td>{getCalendarElement(calendarMinute, setCalendarMinute)}</td>
+                                <td>{getCalendarElement(calendarMS, setCalendarMS)}</td>
+                            </tr>
+                        </tbody>
+                    </Table>
+                </Modal.Body>
+                <Modal.Footer className="modal-background border-0" >
+                    <Button className="btn-sm" variant="success" onClick={saveCalendarChanges}>
+                        Jump
+                    </Button>
+                    <Button className="btn-sm" variant="secondary" onClick={closeCalendar}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
 
             <Modal show={showHelp} className="help-modal border-0" onHide={handleCloseHelp}
-                contentClassName={getModalClass()} data-theme={theme}>
+                contentClassName={getThemeClass()} data-theme={theme}>
                 <Modal.Header className="modal-background" >
                     <div className="float-left">
                         Keyboard Shortcuts
