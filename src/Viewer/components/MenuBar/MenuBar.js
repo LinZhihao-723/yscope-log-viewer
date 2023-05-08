@@ -23,9 +23,16 @@ import STATE_CHANGE_TYPE from "../../services/STATE_CHANGE_TYPE";
 import {EditableInput} from "./EditableInput/EditableInput";
 import moment from 'moment-timezone';
 
-import DateTime from "react-datetime";
-import "react-datetime/css/react-datetime.css";
+import DateTimePicker from 'react-datetime-picker';
+import 'react-datetime-picker/dist/DateTimePicker.css';
+import 'react-calendar/dist/Calendar.css';
+import 'react-clock/dist/Clock.css';
 import "./MenuBar.scss";
+
+const { DateTime, FixedOffsetZone } = require('luxon');
+const convertDateToDateTime = (date) => {
+    return DateTime.fromJSDate(date).setZone("UTC", {keepLocalTime: true});
+}
 
 MenuBar.propTypes = {
     logFileState: PropTypes.object,
@@ -62,13 +69,14 @@ MenuBar.propTypes = {
 export function MenuBar ({
     logFileState, fileMetaData, loadingLogs, changeStateCallback, loadFileCallback,
 }) {
+
     const {theme, switchTheme} = useContext(ThemeContext);
 
     const [eventsPerPage, setEventsPerPage] = useState(logFileState.pages);
     const [showSettings, setShowSettings] = useState(false);
     const [showCalendar, setShowCalendar] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
-    const [calendarDateTime, setCalendarDateTime] = useState(new moment(Math.floor(Date.now() / 1000) * 1000).utc());
+    const [calendarDateTime, setCalendarDateTime] = useState(new Date(Math.floor(Date.now() / 1000) * 1000));
 
     const handleCloseSettings = () => setShowSettings(false);
     const handleShowSettings = () => setShowSettings(true);
@@ -148,8 +156,8 @@ export function MenuBar ({
     };
 
     const handleCalendarChange = (newDate) => {
-        if (newDate instanceof moment) {
-            setCalendarDateTime(newDate.utc());
+        if (newDate instanceof Date) {
+            setCalendarDateTime(newDate);
         } else {
             console.warn(`Invalid input date: ${newDate}`);
         }
@@ -158,7 +166,8 @@ export function MenuBar ({
     const submitCalendarChanges = (e) => {
         e.preventDefault();
         handleCloseCalendar();
-        const timestamp = calendarDateTime.valueOf();
+        const dateTimeUTC = convertDateToDateTime(calendarDateTime);
+        const timestamp = dateTimeUTC.toMillis();
         console.debug(`Timestamp: ${timestamp}`);
         changeStateCallback(STATE_CHANGE_TYPE.timestamp, {timestamp: timestamp});
     };
@@ -293,7 +302,8 @@ export function MenuBar ({
                     </div>
                 </Modal.Header>
                 <Modal.Body className="modal-background p-3 pt-1" >
-                    <DateTime onChange={handleCalendarChange} timeFormat="HH:mm:ss:SSS"
+                    <DateTimePicker onChange={handleCalendarChange}
+                        format="y-MM-dd h:mm:ss a"
                         value={calendarDateTime}/>
                 </Modal.Body>
                 <Modal.Footer className="modal-background border-0" >
