@@ -269,10 +269,8 @@ class FourByteClpIrStreamReader {
         while (decoder.tryReadingAttribute(this._dataInputStream, tag, this._attrPool.getNext())) {
             tag = decoder.readTag(this._dataInputStream);
             ++numAttributes;
-            console.log(`NumAttr: ${numAttributes}; tag: ${tag}`);
         }
         if (this._streamProtocolDecoder.getNumAttributes() !== numAttributes) {
-            console.log(`NumAttr: ${numAttributes}; tag: ${tag}`);
             throw new Error(
                 `Num attributes decoded: ${numAttributes};
                  Num attributes expected: ${this._streamProtocolDecoder.getNumAttributes()}`);
@@ -289,9 +287,8 @@ class FourByteClpIrStreamReader {
                 .get(this._streamProtocolDecoder.getAttributeTable().priority)
                 .get_int_val();
 
-        const timestamp = this._streamProtocolDecoder.readTimestamp(this._dataInputStream);
-        console.log(`Log Type: ${this._logtype}`);
-        console.log(`Timestamp: ${timestamp}`);
+        const timestamp =
+            this._streamProtocolDecoder.readTimestamp(this._dataInputStream) + BigInt(28800000);
 
         return {timestamp, verbosityIx, numValidVars};
     }
