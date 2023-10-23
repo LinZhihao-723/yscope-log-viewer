@@ -288,7 +288,7 @@ class FourByteClpIrStreamReader {
                 .get_int_val();
 
         const timestamp =
-            this._streamProtocolDecoder.readTimestamp(this._dataInputStream) + BigInt(28800000);
+            this._streamProtocolDecoder.readTimestamp(this._dataInputStream);
 
         return {timestamp, verbosityIx, numValidVars};
     }
