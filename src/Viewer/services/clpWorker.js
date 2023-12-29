@@ -85,6 +85,22 @@ onmessage = function (e) {
             const event = new CustomEvent("receiveS3Url", {detail: s3Url});
             dispatchEvent(event);
             break;
+        case CLP_WORKER_PROTOCOL.START_DOWNLOAD:
+            try {
+                handler.startDecodingPagesToDatabase();
+            } catch (e) {
+                sendError(e);
+            }
+            break;
+
+        case CLP_WORKER_PROTOCOL.STOP_DOWNLOAD:
+            try {
+                handler.stopDecodingPagesToDatabase();
+            } catch (e) {
+                sendError(e);
+            }
+            break;
+
         default:
             break;
     }

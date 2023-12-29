@@ -148,23 +148,30 @@ class FourByteClpIrStreamReader {
 
 
         const attributeTable = this._streamProtocolDecoder.getAttributeTable();
-        const pid = this._attrPool.get(attributeTable.pid).get_int_val();
-        const tid = this._attrPool.get(attributeTable.tid).get_int_val();
-        const tag = this._attrPool.get(attributeTable.tag).get_str_val();
-        const priority = this._attrPool.get(attributeTable.priority).get_int_val();
         let formattedAttribute = " ";
-        formattedAttribute += String(pid).padStart(5, " ") + " ";
-        formattedAttribute += String(tid).padStart(5, " ") + " ";
-        formattedAttribute += this.androidPriorityToChar(priority) + " ";
-        formattedAttribute += String(tag).padEnd(8, " ") + ": ";
+        if (Object.keys(attributeTable).length > 0)
+        {
+            const pid = this._attrPool.get(attributeTable.pid).get_int_val();
+            const tid = this._attrPool.get(attributeTable.tid).get_int_val();
+            const tag = this._attrPool.get(attributeTable.tag).get_str_val();
+            const priority = this._attrPool.get(attributeTable.priority).get_int_val();
+            formattedAttribute += String(pid).padStart(5, " ") + " ";
+            formattedAttribute += String(tid).padStart(5, " ") + " ";
+            formattedAttribute += this.androidPriorityToChar(priority) + " ";
+            formattedAttribute += String(tag).padEnd(8, " ") + ": ";
+        }
+
 
         // Get the offset before we output anything to the buffer
         const beginOffset = outputResizableBuffer.getLength();
 
         this._tokenDecoder.decodeTimestamp(outputResizableBuffer, timestamp);
-        outputResizableBuffer.push(
-            FourByteClpIrStreamReader.textEncoder.encode(formattedAttribute)
-        );
+        if (Object.keys(attributeTable).length > 0)
+        {
+            outputResizableBuffer.push(
+                FourByteClpIrStreamReader.textEncoder.encode(formattedAttribute)
+            );
+        }
 
         const contentBeginOffset = outputResizableBuffer.getLength();
 
@@ -281,11 +288,17 @@ class FourByteClpIrStreamReader {
         }
         // Read the logtype and timestamp present in every message
         this._streamProtocolDecoder.readLogtype(this._dataInputStream, tag, this._logtype);
-        // const verbosityIx = this._getLog4jVerbosity();
-        const verbosityIx =
+        const attributeTable = this._streamProtocolDecoder.getAttributeTable();
+        
+        let verbosityIx = null;
+        if (undefined !== attributeTable.priority) {
+            verbosityIx =
             this._attrPool
                 .get(this._streamProtocolDecoder.getAttributeTable().priority)
                 .get_int_val();
+        } else{
+            verbosityIx = this._getLog4jVerbosity();
+        }
 
         const timestamp =
             this._streamProtocolDecoder.readTimestamp(this._dataInputStream);

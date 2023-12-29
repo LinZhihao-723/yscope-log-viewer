@@ -13,6 +13,19 @@ class FourByteClpIrStreamProtocolDecoder {
         this.initializeStream(dataInputStream, tokenDecoder);
     }
 
+    validateVersion (version) {
+        if (PROTOCOL.METADATA.VERSION_VALUE === version) {
+            return true;
+        }
+        if ("v0.0.0" === version) {
+            return true;
+        }
+        if ("0.0.1" === version) {
+            return true;
+        }
+        return false;
+    }
+
     _setTimestamp (timestamp) {
         this._timestamp = timestamp;
     }
@@ -84,11 +97,13 @@ class FourByteClpIrStreamProtocolDecoder {
             throw new Error(`Incompatible protocol version: ${version}`);
         }
         const androidVersion = metadata[PROTOCOL.METADATA.ANDROID_BUILD_VERSION_KEY];
-        if (null === androidVersion) {
-            throw new Error("This viewer is specilized for CLP Android IR streams.");
+        if (null !== androidVersion && undefined !== androidVersion) {
+            this.initializeAttributeTable(metadata);
+        }else  {
+            console.log("This viewer is specilized for CLP Android IR streams.");
         }
+        
         this._timestamp = BigInt(metadata[PROTOCOL.METADATA.REFERENCE_TIMESTAMP_KEY]);
-        this.initializeAttributeTable(metadata);
         tokenDecoder.setZoneId(metadata[PROTOCOL.METADATA.TZ_ID_KEY]);
         tokenDecoder.setTimestampPattern(metadata[PROTOCOL.METADATA.TIMESTAMP_PATTERN_KEY]);
         this._metadataTimestamp = this._timestamp;
@@ -218,8 +233,7 @@ class FourByteClpIrStreamProtocolDecoder {
 
     readAndValidateEncodingType (dataInputStream) {
         for (let i = 0; i < PROTOCOL.FOUR_BYTE_ENCODING_MAGIC_NUMBER.length; ++i) {
-            if (PROTOCOL.FOUR_BYTE_ENCODING_MAGIC_NUMBER[i] !== dataInputStream.readUnsignedByte())
-            {
+            if (PROTOCOL.FOUR_BYTE_ENCODING_MAGIC_NUMBER[i] !== dataInputStream.readUnsignedByte()) {
                 throw new Error("IR stream doesn't use the four-byte encoding.");
             }
         }
