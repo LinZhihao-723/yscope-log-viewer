@@ -99,8 +99,6 @@ class FourByteClpIrStreamProtocolDecoder {
         const androidVersion = metadata[PROTOCOL.METADATA.ANDROID_BUILD_VERSION_KEY];
         if (null !== androidVersion && undefined !== androidVersion) {
             this.initializeAttributeTable(metadata);
-        }else  {
-            console.log("This viewer is specilized for CLP Android IR streams.");
         }
         
         this._timestamp = BigInt(metadata[PROTOCOL.METADATA.REFERENCE_TIMESTAMP_KEY]);

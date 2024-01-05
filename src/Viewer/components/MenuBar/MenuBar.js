@@ -13,7 +13,8 @@ import {
     Gear,
     Keyboard,
     Moon,
-    Sun, XCircle
+    Sun,
+    XCircle
 } from "react-bootstrap-icons";
 
 import {THEME_STATES} from "../../../ThemeContext/THEME_STATES";
@@ -285,7 +286,7 @@ export function MenuBar ({
 
     window.onbeforeunload = function (e) {
         changeStateCallback(STATE_CHANGE_TYPE.stopDownload, null);
-        if (downloadWorker.current !== null) {
+        if (null !== downloadWorker.current) {
             downloadWorker.current.postMessage({
                 code: DOWNLOAD_WORKER_ACTION.clearDatabase,
             });

@@ -221,7 +221,7 @@ class FileManager {
         }
 
         this.state.numberOfEvents = this._logEventOffsets.length;
-        if (this.state.numberOfEvents > 0) {
+        if (0 < this.state.numberOfEvents) {
             this._IRStreamHeader = this._arrayBuffer.slice(0, this._logEventOffsets[0].startIndex);
         }
     };
@@ -294,7 +294,7 @@ class FileManager {
 
         // Calculate where to start decoding from and how many events to decode
         // On final page, the numberOfEvents is likely less than pageSize
-        const targetEvent = ((page-1) * pageSize);
+        const targetEvent = ((page - 1) * pageSize);
         const numberOfEvents = (targetEvent + pageSize >= numEventsAtLevel)
             ?numEventsAtLevel - targetEvent
             :pageSize;

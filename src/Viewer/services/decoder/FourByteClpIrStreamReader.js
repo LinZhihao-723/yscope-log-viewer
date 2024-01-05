@@ -146,10 +146,9 @@ class FourByteClpIrStreamReader {
             }
         }
 
-
         const attributeTable = this._streamProtocolDecoder.getAttributeTable();
         let formattedAttribute = " ";
-        if (Object.keys(attributeTable).length > 0)
+        if (0 < this._streamProtocolDecoder.getNumAttributes())
         {
             const pid = this._attrPool.get(attributeTable.pid).get_int_val();
             const tid = this._attrPool.get(attributeTable.tid).get_int_val();
@@ -166,7 +165,7 @@ class FourByteClpIrStreamReader {
         const beginOffset = outputResizableBuffer.getLength();
 
         this._tokenDecoder.decodeTimestamp(outputResizableBuffer, timestamp);
-        if (Object.keys(attributeTable).length > 0)
+        if (0 < this._streamProtocolDecoder.getNumAttributes())
         {
             outputResizableBuffer.push(
                 FourByteClpIrStreamReader.textEncoder.encode(formattedAttribute)
@@ -293,10 +292,10 @@ class FourByteClpIrStreamReader {
         let verbosityIx = null;
         if (undefined !== attributeTable.priority) {
             verbosityIx =
-            this._attrPool
-                .get(this._streamProtocolDecoder.getAttributeTable().priority)
-                .get_int_val();
-        } else{
+                this._attrPool
+                    .get(this._streamProtocolDecoder.getAttributeTable().priority)
+                    .get_int_val();
+        } else {
             verbosityIx = this._getLog4jVerbosity();
         }
 

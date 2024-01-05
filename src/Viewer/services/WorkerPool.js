@@ -34,11 +34,11 @@ class WorkerPool {
     /**
      * Frees a provided worker from the pool.
      *
-     * @param {Worker} _worker
+     * @param {Worker} worker
      */
-    freeWorker (_worker) {
+    freeWorker (worker) {
         for (const index in this._workerPool) {
-            if (this._workerPool[index] === _worker) {
+            if (this._workerPool[index] === worker) {
                 this._workerPool[index].terminate();
                 this._workerPool[index] = null;
                 break;
@@ -50,7 +50,7 @@ class WorkerPool {
      * Process queue by assigning tasks to workers.
      */
     processQueue () {
-        if (this.taskQueue.length > 0) {
+        if (0 < this.taskQueue.length) {
             const worker = this.getWorker();
             if (worker) {
                 const task = this.taskQueue.shift();

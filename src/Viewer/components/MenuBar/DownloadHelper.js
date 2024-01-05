@@ -27,20 +27,17 @@ const BlobAppender = function () {
 const downloadCompressedFile = () => {
     const link = document.createElement("a");
 
-    // this opens the link in a new tab,
-    //  which avoids interruption of uncompressed logs download
     link.target = "_blank";
 
     const urlParams = new URLSearchParams(window.location.search);
     const filePath = urlParams.get("filePath");
     try {
-        // this URL constructor should only succeed if "filePath"
-        //  has a "protocol" scheme like "http:"
         new URL(filePath);
         link.href = filePath;
     } catch (e) {
-        console.log(`Unable to construct URL object from "${filePath}": ${e}. 
-        Assuming the file is from current origin. `);
+        console.log(
+            `Unable to construct URL object from "${filePath}": ${e}.`
+        );
         link.href = window.location.origin + "/" + filePath;
     }
 
